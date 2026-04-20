@@ -1,0 +1,27 @@
+{
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 800,
+  "editor.formatOnSave": true,
+  "editor.rulers": [88, 100],
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.ipynb_checkpoints": true,
+    "**/logs": true,
+    "**/runs": true,
+    "**/outputs": true,
+    "**/results": true,
+    "**/checkpoints": true
+  },
+  "search.exclude": {
+    "**/__pycache__": true,
+    "**/.ipynb_checkpoints": true,
+    "**/logs": true,
+    "**/runs": true,
+    "**/outputs": true,
+    "**/results": true,
+    "**/checkpoints": true
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
+}
