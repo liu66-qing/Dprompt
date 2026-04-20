@@ -1,0 +1,5 @@
+dataset_root: /path/to/server/dataset
+train_ann: /path/to/server/dataset/train.json
+val_ann: /path/to/server/dataset/val.json
+test_ann: /path/to/server/dataset/test.json
+output_root: /path/to/server/experiment_outputs
