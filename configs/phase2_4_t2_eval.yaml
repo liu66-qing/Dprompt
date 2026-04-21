@@ -1,0 +1,44 @@
+phase_name: phase2_4_t2_eval
+task: Evaluate T0 vs T2 confirmation checkpoints
+
+global:
+  model_type: vit_b
+  image_size: 1024
+  batch_size: 1
+  num_workers: 1
+  seed: 42
+  prompt_mode: points
+  max_interactions: 8
+  report_interactions:
+    - 3
+    - 5
+    - 8
+  noc_threshold: 0.90
+  comparison_anchor: T0
+  historical_baseline_json: results/phase1_baselines/LATEST_phase1_baselines.json
+  freeze_reference:
+    baseline: A2
+    prompt_mode: points
+    inter_num: 8
+  freeze_tolerance:
+    avg_dice_abs: 0.0010
+    avg_iou_abs: 0.0015
+
+method_defs:
+  T0:
+    title: B0-frozen
+    description: Frozen A2 baseline without bridge training.
+    local_adapter_blocks: []
+    hsf_blocks: []
+    downstream_anchor: true
+
+  T2:
+    title: HSF-only
+    description: Freeze A2 and train only the HSF projections and fusion weights.
+    local_adapter_blocks: []
+    hsf_blocks:
+      - 9
+      - 10
+      - 11
+    sam_checkpoint: PLACEHOLDER_T2_CHECKPOINT
+    downstream_anchor: false

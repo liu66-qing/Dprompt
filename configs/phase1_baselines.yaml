@@ -1,0 +1,58 @@
+phase_name: phase1_a2_baseline_legalization
+task: IMIS-Bench baseline legalization on local BTCV sample
+
+global:
+  model_type: vit_b
+  image_size: 1024
+  batch_size: 1
+  num_workers: 1
+  seed: 42
+  checkpoint_key: imis_checkpoint
+  dataset_key: imis_btcv_root
+  prompt_modes_supported:
+    - points
+    - bboxes
+
+baseline_defs:
+  A0:
+    title: Repo default
+    description: Mirror the public `test.py` default evaluation path.
+    prompt_modes:
+      - points
+    inter_nums:
+      - 1
+    role: repo_default_reference
+    downstream_anchor: false
+
+  A1:
+    title: Paper-aligned
+    description: Run the paper-aligned interaction sweep on the released checkpoint.
+    prompt_modes:
+      - points
+      - bboxes
+    inter_nums:
+      - 1
+      - 3
+      - 5
+      - 8
+    role: legalization_sweep
+    downstream_anchor: false
+
+  A2:
+    title: Paper-aligned-strong
+    description: Freeze the strongest legal point-prompt baseline for downstream M0.
+    prompt_modes:
+      - points
+    inter_nums:
+      - 8
+    role: downstream_anchor
+    downstream_anchor: true
+
+freeze_statement:
+  primary_anchor: A2 points K=8
+  rationale:
+    - The downstream method work is point-prompt correction oriented, so the frozen M0 anchor should stay in the point branch.
+    - Bbox K=8 remains a supporting upper-bound metric in A1, not the downstream comparator.
+  local_scope_note:
+    - Current Phase 1 is legalized on the released IMIS checkpoint plus local BTCV sample split.
+    - If full IMed-361M or paper training recipe becomes available later, rerun the same legalization protocol before any paper table is frozen.

@@ -1,0 +1,44 @@
+phase_name: phase2_4_t2_confirmation
+task: T2 confirmation run with fixed-budget full-14 validation
+
+global:
+  seeds:
+    - 42
+    - 43
+    - 44
+  model_type: vit_b
+  image_size: 1024
+  batch_size: 1
+  num_workers: 1
+  mask_num: 2
+  inter_num: 4
+  num_epochs: 1
+  max_steps_per_epoch: 2
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  disable_text_prompt: true
+  skip_interaction_training: true
+  trainable_scope: hsf_only
+  hsf_blocks:
+    - 9
+    - 10
+    - 11
+  checkpoint_root: external/IMIS-Bench/work_dir/phase2_4_t2_confirmation
+  eval_output_root: results/phase2_4_t2_confirmation
+
+evaluation:
+  comparison_anchor: T0
+  prompt_mode: points
+  max_interactions: 8
+  report_interactions:
+    - 3
+    - 5
+    - 8
+  noc_threshold: 0.90
+  track_metrics:
+    - Dice@5
+    - Dice@8
+    - NoC@90
+    - Avg Interaction Latency
+    - Peak Memory
+    - Win Rate vs T0

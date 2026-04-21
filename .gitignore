@@ -8,6 +8,7 @@ __pycache__/
 venv/
 .venv/
 env/
+envs/
 
 # Jupyter
 .ipynb_checkpoints/
@@ -15,6 +16,8 @@ env/
 # Dataset
 data/
 datasets/
+external/
+tmp-*/
 *.zip
 *.tar
 *.gz
@@ -35,3 +38,7 @@ results/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local config
+.agents/
+configs/paths.local.yaml

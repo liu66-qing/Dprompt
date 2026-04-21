@@ -1,0 +1,76 @@
+phase_name: phase2_2_trainable_bridge
+task: Freeze-A2 bridge learnability check on local BTCV sample
+
+global:
+  model_type: vit_b
+  image_size: 1024
+  batch_size: 2
+  num_workers: 1
+  mask_num: 2
+  inter_num: 4
+  seed: 42
+  num_epochs: 1
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  lr_scheduler: null
+  max_steps_per_epoch_smoke: 2
+  max_eval_cases_smoke: 2
+  report_interactions:
+    - 3
+    - 5
+    - 8
+  noc_threshold: 0.90
+  work_dir: external/IMIS-Bench/work_dir/phase2_2_trainable_bridge
+
+run_defs:
+  T0:
+    title: B0-frozen
+    description: Frozen A2 baseline for reference only.
+    trainable_scope: none
+    local_adapter_blocks: []
+    hsf_blocks: []
+    task_name: T0_b0_frozen
+    eval_only: true
+    checkpoint: null
+
+  T1:
+    title: Adapter-only
+    description: Freeze A2 and train only late-stage local adapters.
+    trainable_scope: adapter_only
+    local_adapter_blocks:
+      - 9
+      - 10
+      - 11
+    hsf_blocks: []
+    task_name: T1_adapter_only
+    eval_only: false
+    checkpoint: external/IMIS-Bench/work_dir/phase2_2_trainable_bridge/T1_adapter_only/IMIS_latest.pth
+
+  T2:
+    title: HSF-only
+    description: Freeze A2 and train only hierarchical fusion projections and weights.
+    trainable_scope: hsf_only
+    local_adapter_blocks: []
+    hsf_blocks:
+      - 9
+      - 10
+      - 11
+    task_name: T2_hsf_only
+    eval_only: false
+    checkpoint: external/IMIS-Bench/work_dir/phase2_2_trainable_bridge/T2_hsf_only/IMIS_latest.pth
+
+  T3:
+    title: Adapter + HSF
+    description: Freeze A2 and train the full bridge only.
+    trainable_scope: bridge_only
+    local_adapter_blocks:
+      - 9
+      - 10
+      - 11
+    hsf_blocks:
+      - 9
+      - 10
+      - 11
+    task_name: T3_adapter_hsf
+    eval_only: false
+    checkpoint: external/IMIS-Bench/work_dir/phase2_2_trainable_bridge/T3_adapter_hsf/IMIS_latest.pth

@@ -1,5 +1,20 @@
-dataset_root: /path/to/server/dataset
-train_ann: /path/to/server/dataset/train.json
-val_ann: /path/to/server/dataset/val.json
-test_ann: /path/to/server/dataset/test.json
-output_root: /path/to/server/experiment_outputs
+project_root: /abs/path/to/Dprompt
+
+env:
+  imisbench_conda_prefix: /abs/path/to/Dprompt/envs/imisbench
+  imisbench_python: /abs/path/to/Dprompt/envs/imisbench/bin/python
+
+paths:
+  imis_bench_root: /abs/path/to/Dprompt/external/IMIS-Bench
+  imis_btcv_root: /abs/path/to/Dprompt/external/IMIS-Bench/dataset/BTCV
+  imis_checkpoint: /abs/path/to/Dprompt/external/IMIS-Bench/ckpt/IMISNet-B.pth
+  imis_work_dir: /abs/path/to/Dprompt/external/IMIS-Bench/work_dir
+  aris_repo_root: /abs/path/to/Dprompt/external/Auto-claude-code-research-in-sleep
+  aris_project_skills: /abs/path/to/Dprompt/.agents/skills
+  stage_memory: /abs/path/to/Dprompt/memory/STAGE_MEMORY.md
+  experiment_log: /abs/path/to/Dprompt/docs/实验启动记录.md
+  change_log: /abs/path/to/Dprompt/docs/变更记录.md
+
+notes:
+  - 所有真实路径只写在 paths.local.yaml，不要硬编码到源码。
+  - 如果目录变化，请先更新本文件对应模板，再更新本机 local 配置。

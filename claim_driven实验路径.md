@@ -1,543 +1,311 @@
-
-# 一、最终论文只证明三条 Claim
+# 一、当前只保留三条 Claim
 
 ## Claim 1：Baseline legalization
 
-**我们先建立 paper-aligned strong IMIS-Net baseline，避免 paper 与公开代码配置漂移造成的比较失真。**
+**所有后续比较都只允许建立在 paper-aligned strong baseline `A2` 上。**
 
-这条不是创新点，是地基。
-它的作用只有一个：**锁死后续唯一合法对照基线 A2**。
+这条不是创新点，是唯一合法参照面。
 
 ---
 
 ## Claim 2：唯一主命题
 
-**新增 prompt 只有在一个 canonical、full-history-conditioned correction contract 中，才会稳定地转化为交互效率提升；它不能被等价地视为“又一个 local refinement trigger”。**
+**在强 `A2` 基线上，只引入 `HSF-only` 的轻量 trainable bridge，就能在不重写交互流程的前提下，稳定提升 ViT-based IMIS 的交互分割质量与修正效率。**
 
-这条是全文唯一真正的方法主张。
-全文所有实验都要服务它。
+这就是当前唯一主方法叙事。
+不再证明：
 
----
-
-## Claim 3：效率与预算是 defense
-
-**这个 correction contract 在 matched / comparable budget 下仍然提升交互效率，而不是单纯增加计算。**
-
-这条不是头号创新。
-它的任务是挡住：
-
-* 你只是更贵
-* 你只是 another crop trick
-* 你只提升了静态 Dice
+- `Adapter + HSF` 必须同时成立
+- `T3` 组合一定有互补性
+- prompt-aware weighting 是必要组件
 
 ---
 
-# 二、主文只保留四根柱子
+## Claim 3：效率与范围 defense
 
-## 柱子 1：A2 合法化基线
+**`T2` 的收益不是靠破坏基线或明显增加时延换来的。**
 
-主文只展示三档：
+当前只证明两件事：
 
-* A0：Repo default
-* A1：Paper-aligned
-* A2：Paper-aligned-strong
-
-目标不是结果多，而是证明：
-**后续所有方法必须只和 A2 比。**
+- bridge wiring 干净，不污染 `A2`
+- `T2` 的 latency 不升，memory 只小幅增加
 
 ---
 
-## 柱子 2：M0 / M1 / M3 最小 formulation 对比
+# 二、当前主方法定义
 
-主文核心只保留：
+## 主方法
 
-* **M0**：A2 baseline
-* **M1**：simple crop refinement
-* **M3**：contract-correction
+**`T2 = A2 + HSF-only`**
 
-如果你要保留 M2，只放补表，不让它抢主文叙事。
+工程定义：
 
-这组真正证明的是：
+- 冻结 `A2`
+- 不改交互协议
+- 不解冻 backbone
+- 只训练 `HSF` 相关 bridge 参数
+- 当前 `hsf_blocks = [9, 10, 11]`
 
-* **M1 > M0**：普通 local refinement 的上限
-* **M3 > M1**：不是 crop trick，而是 contract 本身有效
+## 当前唯一对照
 
----
+- `T0 = B0-frozen = A2`
 
-## 柱子 3：D 组
+## 已封存分支
 
-必须保留：
-
-* D1：delta-only
-* D2：full-history
-* D3：full-history + delta embedding
-
-这组现在证明的是：
-
-> 新增 prompt 本身不够；
-> 只有历史 prompt 一起进入 correction contract，局部修正才是合法的。
-
-这是你最关键的“去 trigger 化”证据。
+- `T1 = Adapter-only`
+  - 只保留为历史 learnability / ablation 参考
+- `T3 = Adapter + HSF`
+  - 当前 fixed-budget 下未形成互补
+  - **正式封存，不再继续 rescue**
+- `B4 / prompt-aware weighting`
+  - 当前不进入活动主线
 
 ---
 
-## 柱子 4：C5 Trigger–Budget Sweep
+# 三、已完成证据链
 
-保留，但只证明一件事：
+## Phase 0 / 1：地基已完成
 
-> 这个 contract 在不同预算下如何退化。
+- IMIS-Bench 环境、BTCV sample、checkpoint 已打通
+- `A2 = points, K=8` 已冻结为唯一强基线
 
-它不是证明 trigger 是主创新，
-而是证明：**contract 的部署曲线是平滑、可控、可解释的。**
+## Phase 2.1：Zero-perturbation wiring 已完成
+
+- `B0 / B1 / B2 / B3` 的最小实现都能正常前向
+- `B0` 与 `A2` 指标一致，说明新增路径未污染基线
+
+## Phase 2.2：Bridge learnability 已完成
+
+- `freeze-A2`
+- `disable_text_prompt = true`
+- `skip_interaction_training = true`
+- `HSF` 已确认可学
+- `Adapter` 通过修复初始化后也确认可学
+
+## Phase 2.3：Fixed-Budget Full-14 已完成
+
+核心结果：
+
+- `T0`：
+  - `Dice@5 = 0.8794`
+  - `Dice@8 = 0.8890`
+  - `NoC@90 = 5.143`
+- `T2`：
+  - `Dice@5 = 0.8906`
+  - `Dice@8 = 0.8900`
+  - `NoC@90 = 4.786`
+
+阶段结论：
+
+- `T2` 是最清晰的正向 bridge 信号
+- `T3` 不成立，不能再做主方法
+
+## Phase 2.4：T2 Confirmation Run 已完成
+
+固定条件：
+
+- seeds = `42 / 43 / 44`
+- freeze-A2
+- fixed budget：`1 epoch + 2 steps/epoch`
+- full `14` test items
+
+### 3-seed 汇总
+
+| System | Dice@5 | Dice@8 | NoC@90 | Latency (s) | Memory (MB) |
+|---|---:|---:|---:|---:|---:|
+| T0 | `0.8768 +- 0.0077` | `0.8884 +- 0.0029` | `5.333 +- 0.330` | `0.1253 +- 0.0024` | `3540.2 +- 23.1` |
+| T2 | `0.8866 +- 0.0042` | `0.8884 +- 0.0062` | `5.190 +- 0.393` | `0.1192 +- 0.0010` | `3752.1 +- 20.1` |
+
+### Delta `T2 - T0`
+
+- `Dice@5 = +0.0098 +- 0.0062`
+- `Dice@8 = +0.0000 +- 0.0040`
+- `NoC@90 = -0.143 +- 0.214`
+- latency：
+  - 更快，约 `-4.9%`
+- memory：
+  - 小幅上升，约 `+6.0%`
+
+### Case-level pooled win rate
+
+- `Dice@5`：
+  - `23 win / 17 loss / 2 tie`
+- `Dice@8`：
+  - `26 win / 16 loss / 0 tie`
+
+### 当前结论
+
+- `Dice@5` 三个 seed 全部翻正
+- `NoC@90` 平均更好，且 `3` 个 seed 里有 `2` 个更好
+- latency 没变差
+- memory 只小幅上升
+
+**因此：`T2` 通过最小确认实验，正式升格为当前唯一主方法。**
+
+## Phase 2.5：T2-only Diagnosis and Defense 已完成
+
+固定动作：
+
+- 只看 `T0 vs T2`
+- 不加新模块
+- 不恢复 `T3`
+- 不重跑主实验
+
+### Efficiency defense
+
+- `Dice@5 = +0.0098 +- 0.0062`
+- `Dice@8 = +0.0000 +- 0.0040`
+- `NoC@90 = -0.143 +- 0.214`
+- Avg Interaction Latency：
+  - `-0.0061 +- 0.0014 s`
+- wall-clock per case：
+  - `-0.0486 +- 0.0110 s`
+- Peak Memory：
+  - `+211.9 +- 6.8 MB`
+
+这说明：
+
+- `T2` 不是靠更慢的交互换结果
+- 当前代价主要是小幅显存增加
+
+### Local diagnosis
+
+当前采用 target-level 诊断，因为 BTCV 的每个 case 含多个结构，这样更适合隔离尺寸和边界因素。
+
+#### Size strata
+
+- `small`：
+  - `Mean Delta Dice@5 = +0.0144`
+  - `Median Delta Dice@5 = -0.0008`
+  - `Win Rate = 37.9%`
+- `medium`：
+  - `Mean Delta Dice@5 = +0.0167`
+  - `Median Delta Dice@5 = +0.0003`
+  - `Win Rate = 57.1%`
+- `large`：
+  - `Mean Delta Dice@5 = +0.0014`
+  - `Median Delta Dice@5 = +0.0009`
+  - `Win Rate = 60.7%`
+
+这说明：
+
+- 小目标不是“全面抬升”
+- 更像是：
+  - 一部分困难小目标有明显收益
+  - 但不是所有 small targets 都会提升
+
+#### Boundary complexity strata
+
+- `simple`：
+  - `Mean Delta Dice@5 = +0.0030`
+  - `Median Delta Dice@5 = -0.0002`
+  - `Win Rate = 44.2%`
+- `complex`：
+  - `Mean Delta Dice@5 = +0.0190`
+  - `Median Delta Dice@5 = +0.0006`
+  - `Win Rate = 59.5%`
+
+这说明：
+
+- **当前最干净、最可 defend 的增益来源是 complex boundary objects**
+- 这条证据比 blanket small-target story 更强
+
+### Representative cases
+
+当前已固定 `4` 类例子，并生成定性图：
+
+- small-target win
+- complex-boundary win
+- near tie
+- failure case
+
+图文件：
+
+- `figures/phase2_5_t2_representative_cases.pdf`
+- `figures/phase2_5_t2_representative_cases.png`
+
+### 当前结论
+
+**Phase 2.5 已把主线从“`T2` 只是平均更好”推进到“`T2` 的收益主要集中在 boundary complexity 更高的结构上，而且成本可 defend”。**
 
 ---
 
-# 三、最终方法定义
+# 四、当前 Result-to-Claim 判定
 
-## 方法名
+> 本轮按 `result-to-claim` 口径做本地判断，未额外起 reviewer 子代理。
 
-**M3 = Contract-Correction**
+## 对旧主张的判定
 
-## 一句话定义
+- 旧主张：
+  - `Adapter + HSF` 组合作为主方法成立
+- 结论：
+  - **不支持**
 
-对于每次新增 prompt，我们**不直接执行局部 refinement**。
-我们先判断它是否意味着一个**局部约束被违反的 correction event**；如果是，就实例化一个 **canonical correction space**，把 ROI 内**全部历史 prompts**重映射进去，并在这个空间里执行局部 correction。
+## 对当前缩窄主张的判定
 
----
+- 当前主张：
+  - `HSF-only` 在强 `A2` 基线上是当前唯一稳定的增量方法候选
+- 结论：
+  - **支持当前项目推进**
+  - 但对论文级泛化主张仍只算 **partial support**
 
-## M3 的唯一不可替代因子
+当前能诚实写出的范围是：
 
-**canonical + full-history-conditioned**
+> 在当前 BTCV sample、freeze-A2、fixed-budget、full-14 的设定下，`T2 = HSF-only` 已表现出稳定且可重复的正向信号。
 
-这就是方法核。
-其他全部降级：
+当前还不能写的是：
 
-* delta prompt：事件触发源
-* trigger：部署机制
-* budget：效率约束
-* local branch：执行器
-* serial/logit fusion：工程实现
-
----
-
-# 四、完整 Claim-driven 实验路线图
-
----
-
-## Phase 0：IMIS-Bench 跑通 + 日志模板定型
-
-### 目标
-
-先证明你真的把 IMIS-Bench 跑通，不是在空气里设计方法。
-
-### 要做
-
-* 跑 repo default smoke run
-* 固定统一日志格式
-* 生成单 case 交互轨迹模板
-
-### 必须记录
-
-* 配置
-* seed
-* split
-* 每轮交互 Dice
-* 每轮是否触发 correction
-* 每轮 latency
-* correction ROI
-* 一个完整 case 从第 1 轮到第 (K) 轮的轨迹图
-
-### 产出
-
-* 复现实验卡
-* 交互日志模板
-* 轨迹图模板
-
-### 预算
-
-* **0.2–0.5 GPU-day**
-
-### Stop / Go
-
-* 跑不通：停止方法开发
-* 跑通：进入 Phase 1
+- 一般性地宣称 “分层语义融合在所有 IMIS 条件下都成立”
+- 把 `T3` 说成互补组合
+- 把 prompt-aware weighting 重新拉回主线
 
 ---
 
-## Phase 1：A2 基线合法化
+# 五、当前 Stop List
 
-### 目标
+下面这些现在都不再做：
 
-建立三档合法基线，冻结后续唯一参照面。
+- 不做 `T3` rescue
+- 不做 `G1 / G2 / G3`
+- 不做 adapter 范围缩放
+- 不做 staged training
+- 不做新 loss
+- 不做 `B4`
+- 不做新的 trigger / contract 线
+- 不做 backbone 解冻
 
-### 组别
+一句话：
 
-* A0：Repo default
-* A1：Paper-aligned
-* A2：Paper-aligned-strong
-
-### 建议 A2 设定
-
-尽量对齐论文主设定：
-
-* 1024 输入
-* patch 16
-* 连续交互 (K=8)
-* decoder output 256×256
-* decoder dim = 768
-
-### 指标
-
-* Point Dice
-* Bbox Dice
-* 1/3/5/8 interaction Dice
-* latency
-* Peak Memory
-
-### 产出
-
-* A0/A1/A2 基线表
-* 一个 clear statement：后续全部只和 A2 比
-
-### 预算
-
-* **1–3 GPU-days**（子集）
-* **3–8 GPU-days**（更完整）
-
-### Stop / Go
-
-* 如果 A2 没稳定强于 A0/A1，不做方法
-* A2 立住，再进 Phase 2
+> 现在只问 `T2` 还能不能被更扎实地解释和防守，不再问怎么让 `T3` 成立。
 
 ---
 
-## Phase 2：最小可证 Run（只验证主命题）
+# 六、下一步只保留一个入口
 
-### 目标
+## 下一阶段
 
-只回答一个问题：
+**Phase 3：Paper-ready claim freeze**
 
-> 新增 prompt 是否只有在 canonical、full-history-conditioned correction contract 中，才真正带来交互效率提升？
+## 下一步唯一合理任务
 
-### 比较组
+不再开新方法实验，只做：
 
-* **M0**：A2
-* **M1**：simple crop refinement
-* **M3**：contract-correction
+- 主表定稿
+- diagnosis table / figure 整理
+- representative cases 写进正文或 appendix
+- claim wording freeze
 
-### M3 最小实现只保留
+如果后续再开实验，也必须满足：
 
-1. delta prompt 触发 correction event
-2. ROI proposer
-3. canonical correction space
-4. full-history prompt remapping
-5. spacing-preserving local view
-6. infer-time selective trigger
-7. serial correction + logit-space fusion
-
-### 明确不做
-
-* routing
-* RL gate
-* fancy acceptor
-* adapter
-* extra memory tricks
-* consistency 套件
-
-### 主指标
-
-* NoC@90
-* Correction Gain@3 / @5
-* Trigger Rate
-* Peak Memory
-* per-interaction latency
-
-### 最低通过门槛
-
-#### 任务门槛
-
-* **NoC@90 下降 ≥ 5%**
-  或
-* **Correction Gain@3 / @5 明显提升**
-
-#### 成本门槛
-
-* Trigger Rate 明显 < 100%
-* Peak Memory 不超过 A2 的 **1.2–1.35×**
-* 平均交互 latency 不超过 A2 的 **1.3–1.5×**
-
-#### 解释性门槛
-
-* **M3 > M1**：不是 another crop trick
-* triggered corrections 的平均收益 > non-triggered pseudo-corrections
-
-### 预算
-
-* **2–4 GPU-days**
-
-### Stop / Go
-
-* 如果 M3 不能稳定赢 M1，不继续
-* 如果 M3 赢 M1，但 wall-clock / memory 完全不可控，要先修工程
-* 如果 M3 在 NoC 或 Gain 上有明确正向信号，进入 Phase 3
+- 不新增模块
+- 不更换方法核
+- 不恢复 `T3`
+- 不横向扩表
 
 ---
 
-# 五、主文必须做的核心消融
+# 七、当前一句话总括
 
----
+**主方法已经从“B3 组合增强”正式收缩为“`T2 = HSF-only`”。**
 
-## D 组：证明“trigger 不是核心，contract 才是核心”
-
-### 组别
-
-* D1：delta-only
-* D2：full-history
-* D3：full-history + delta embedding
-
-### 目的
-
-证明：
-
-* 不是“新增 prompt 本身”在起作用
-* 而是“历史 prompt 共同约束下的 correction contract”在起作用
-
-### 主指标
-
-* NoC@90
-* Gain@3 / @5
-* prompt contradiction count（有条件就加）
-* 失败例子数
-
----
-
-## C5：Trigger–Budget Sweep
-
-### 横轴
-
-* threshold (\tau)
-  或
-* budget level：strict / medium / relaxed
-
-### 纵轴
-
-* NoC@90
-* Gain
-* Trigger Rate
-* latency
-* Peak Memory
-* wall-clock
-
-### 目的
-
-证明：
-
-* contract 在不同预算下是可调、可退化的
-* budget-aware 不是口号
-
----
-
-# 六、主文必须保留的三块可信度建设
-
----
-
-## 1. 三个 seeds
-
-至少：
-
-* 主表：3 seeds
-* D 组：3 seeds
-
-报告：
-
-* mean ± std
-  或
-* 95% CI
-
----
-
-## 2. 双 simulator
-
-至少两个：
-
-### Simulator A：理想型
-
-* 贴近论文默认交互规则
-
-### Simulator B：噪声型
-
-* 更大 click 偏移
-* 更松 bbox
-* 顺序更乱
-
-### 目的
-
-证明：
-
-* 你不是 overfit 某一个 prompt simulator
-
----
-
-## 3. per-interaction wall-clock
-
-必须报：
-
-* 平均每次交互 latency
-* correction 被触发时 latency
-* 不触发时 latency
-* 达到 NoC@90 的总 wall-clock
-
-### 目的
-
-证明：
-
-* NoC 下降不是拿更慢的人机过程换来的
-
----
-
-# 七、附录里再放的 defense
-
-主文不要塞太多。
-这些全降级到附录：
-
-* B7：serial logit fusion vs feature-level fusion surrogate
-* G 组：acceptance / fusion 细节
-* E 组更多 canonicalization 变体
-* failure cases 详细统计
-* 更多轨迹图
-* 更多分层分析
-
----
-
-# 八、最终 Ablation 目录
-
-## 主文 Ablation
-
-* A：Baseline legalization（A0/A1/A2）
-* M：M0/M1/M3 minimal formulation comparison
-* D：delta-only vs full-history vs delta embedding
-* C5：trigger–budget sweep
-
-## 附录 Ablation
-
-* E：canonicalization variants
-* F：train-all infer-selectively vs hard-trigger train
-* G：acceptance / fusion variants
-* B7：serial vs feature-level fusion surrogate
-
----
-
-# 九、最终预算与执行顺序
-
-## Week 1
-
-### 任务
-
-* Phase 0
-* Phase 1
-
-### 输出
-
-* 日志模板
-* A0/A1/A2
-* 一张 baseline legalization 表
-
-### 预算
-
-* **1–3 GPU-days**
-
----
-
-## Week 2
-
-### 任务
-
-* Phase 2 MVP
-* M0/M1/M3
-
-### 输出
-
-* 最小 go / no-go 结果
-* NoC / Gain / Trigger Rate / Memory / latency 表
-
-### 预算
-
-* **2–4 GPU-days**
-
----
-
-## Week 3
-
-### 任务
-
-* D 组
-* C5 sweep
-* 3 seeds
-
-### 输出
-
-* 两张主文核心图表：
-
-  * D 组表
-  * trigger–budget 曲线
-
-### 预算
-
-* **3–6 GPU-days**
-
----
-
-## Week 4
-
-### 任务
-
-* 双 simulator
-* per-interaction wall-clock
-* failure cases 小节
-* 附录补充实验
-
-### 输出
-
-* robustness 表
-* wall-clock 表
-* 失败案例图
-
-### 预算
-
-* **4–8 GPU-days**
-
----
-
-## 总预算
-
-### 最小可证版
-
-* **4–8 GPU-days**
-
-### 可投稿版
-
-* **10–20 GPU-days**（子集前提）
-* 更完整复现会更高
-
----
-
-# 十、最后一句最终执行原则
-
-> **先证明“canonical, full-history-conditioned correction contract”是必要的，再谈 trigger、预算和部署；绝不反过来。**
-
-也就是说，在下面这些还没成立前，不要扩：
-
-* routing
-* 更复杂 acceptor
-* adapter
-* multi-memory
-* 更复杂局部分支
-
-因为你现在最该证明的，不是“我有很多设计”，而是：
-
-> **新增 prompt 只有在 canonical、history-conditioned correction contract 中，才真正转化为交互效率提升。**
-
-这就是整理后的**完整 Claim-driven 实验路线图**。
-如果你愿意，我下一步直接给你整理成**论文实验章节目录 + 每张图表标题**。
-
-[1]: https://openaccess.thecvf.com/content/CVPR2025/papers/Cheng_Interactive_Medical_Image_Segmentation_A_Benchmark_Dataset_and_Baseline_CVPR_2025_paper.pdf "Interactive Medical Image Segmentation: A Benchmark Dataset and Baseline"
+现在最重要的不是继续找新方法，而是把 `T2` 的 complex-boundary 优势、效率代价和失败案例一起讲清楚。

@@ -1,0 +1,65 @@
+phase_name: phase2_b_minimal
+task: B-line minimal implementation and frozen-baseline verification on local BTCV sample
+
+global:
+  model_type: vit_b
+  image_size: 1024
+  batch_size: 1
+  num_workers: 1
+  seed: 42
+  prompt_mode: points
+  max_interactions: 8
+  report_interactions:
+    - 3
+    - 5
+    - 8
+  noc_threshold: 0.90
+  historical_baseline_json: results/phase1_baselines/LATEST_phase1_baselines.json
+  freeze_reference:
+    baseline: A2
+    prompt_mode: points
+    inter_num: 8
+  freeze_tolerance:
+    avg_dice_abs: 0.0010
+    avg_iou_abs: 0.0015
+
+method_defs:
+  B0:
+    title: A2 baseline
+    description: Frozen paper-aligned strong baseline with point prompts and K=8.
+    local_adapter_blocks: []
+    hsf_blocks: []
+    downstream_anchor: true
+
+  B1:
+    title: Late-Stage Local Adapter
+    description: Add lightweight local adapters to the last three ViT blocks.
+    local_adapter_blocks:
+      - 9
+      - 10
+      - 11
+    hsf_blocks: []
+    downstream_anchor: false
+
+  B2:
+    title: Hierarchical Semantic Fusion
+    description: Tap the last three ViT blocks and fuse them in the decoder path.
+    local_adapter_blocks: []
+    hsf_blocks:
+      - 9
+      - 10
+      - 11
+    downstream_anchor: false
+
+  B3:
+    title: Local Adapter + HSF
+    description: Combine late-stage local detail enhancement and hierarchical semantic fusion.
+    local_adapter_blocks:
+      - 9
+      - 10
+      - 11
+    hsf_blocks:
+      - 9
+      - 10
+      - 11
+    downstream_anchor: false
